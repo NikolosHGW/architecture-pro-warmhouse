@@ -1,0 +1,39 @@
+@startuml
+!include <C4/C4_Container>
+
+title Диаграмма контейнера
+
+Person(user, "Пользователь")
+
+System_Boundary(warmhouse, "Тёплый дом") {
+
+    Container(web_client, "фронтенд", "JS", "Интерфейс для пользователя")
+
+    Container(bff, "Backend for frontend", "Go", "Распределяет запросы от фронтенда к микросервисам и отдаёт данные от них на фронтенд")
+
+    Container(sensors, "микросервис - Управление датчиками", "Go", "Управляет датчиками (подключения, удаления и т.д.)")
+
+    ContainerDb(sensors_db, "База данных для микросервиса Управление датчиками", "PostgreSQL", "Хранит данные")
+
+    Container(monitoring, "микросервис - Мониторинг датчиков", "Go", "Получает показания")
+
+    ContainerDb(monitoring_db, "База данных для микросервиса Мониторинг датчиков", "PostgreSQL", "Хранит данные")
+
+    Container(auth, "микросервис - Управление пользователями", "Go", "Авторизация и аутентификация пользователей")
+
+    ContainerDb(auth_db, "База данных для микросервиса Управление пользователями", "PostgreSQL", "Хранит данные")
+}
+
+System_Ext("user_sensors", "датчики")
+
+Rel(user, web_client, "Управляет датчиками", "HTTP")
+Rel(web_client, bff, "", "HTTP")
+Rel(bff, sensors, "", "gRPC")
+Rel(bff, monitoring, "", "gRPC")
+Rel(bff, auth, "", "gRPC")
+Rel(sensors, sensors_db, "Читает и записывает")
+Rel(monitoring, monitoring_db, "Читает и записывает")
+Rel(auth, auth_db, "Читает и записывает")
+Rel(monitoring, user_sensors, "Получает данные с датчиков пользователей")
+
+@enduml
