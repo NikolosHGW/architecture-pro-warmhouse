@@ -1,0 +1,32 @@
+@startuml
+!include <C4/C4_Component>
+
+title Диаграмма компонентов — Управление устройствами
+
+Container(bff, "BFF", "Go", "API для frontend")
+ContainerDb(db, "База данных для микросервиса Управление устройствами", "PostgreSQL")
+ContainerQueue(rabbit, "Брокер сообщений", "RabbitMQ", "События устройств")
+
+Container_Boundary(devices, "Управление устройствами") {
+
+    Component(device_hadler, "Handler слой устройств", "gRPC", "Принимает запросы")
+
+    Component(device_service, "Сервисный слой устройств", "Go", "Бизнес-логика управления устройствами")
+
+    Component(device_repo, "Репозиторий устройств", "Go", "Работа с данными устройств")
+
+    Component(outbox_repo, "Репозиторий outbox устройств", "Go", "Работа с таблицей outbox_devices")
+
+    Component(publisher, "Воркер Outbox Publisher", "Go", "Публикация событий")
+}
+
+Rel(bff, device_hadler, "Вызывает", "gRPC")
+Rel(device_hadler, device_service, "Вызывает бизнес-логику")
+Rel(device_service, device_repo, "Читает и записывает")
+Rel(device_service, outbox_repo, "Записывает")
+Rel(device_repo, db, "SQL в одной транзакции с outbox_repo")
+Rel(outbox_repo, db, "SQL в одной транзакции с device_repo")
+Rel(publisher, db, "Читает outbox_devices", "SQL")
+Rel(publisher, rabbit, "Публикует события", "AMQP")
+
+@enduml

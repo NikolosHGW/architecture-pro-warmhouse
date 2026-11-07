@@ -1,7 +1,7 @@
 @startuml
 !include <C4/C4_Container>
 
-title Диаграмма контейнера
+title Диаграмма контейнеров
 
 Person(user, "Пользователь")
 
@@ -11,13 +11,13 @@ System_Boundary(warmhouse, "Тёплый дом") {
 
     Container(bff, "Backend for frontend", "Go", "Распределяет запросы от фронтенда к микросервисам и агрегирует данные для ответа на фронтенд")
 
-    Container(sensors, "микросервис - Управление датчиками", "Go", "Управляет датчиками (подключения, удаления и т.д.)")
+    Container(devices, "микросервис - Управление устройствами", "Go", "Управляет устройствами (подключения, удаления и т.д.)")
 
-    ContainerDb(sensors_db, "База данных для микросервиса Управление датчиками", "PostgreSQL", "Хранит данные")
+    ContainerDb(devices_db, "База данных для микросервиса Управление устройствами", "PostgreSQL", "Хранит данные")
 
-    Container(monitoring, "микросервис - Мониторинг датчиков", "Go", "Получает показания")
+    Container(monitoring, "микросервис - Мониторинг устройств", "Go", "Получает показания")
 
-    ContainerDb(monitoring_db, "База данных для микросервиса Мониторинг датчиков", "PostgreSQL", "Хранит данные")
+    ContainerDb(monitoring_db, "База данных для микросервиса Мониторинг устройств", "PostgreSQL", "Хранит данные")
 
     Container(auth, "микросервис - Управление пользователями", "Go", "Авторизация и аутентификация пользователей")
 
@@ -28,16 +28,16 @@ System_Boundary(warmhouse, "Тёплый дом") {
 
 System_Ext("user_sensors", "датчики")
 
-Rel(user, web_client, "Управляет датчиками", "HTTP")
+Rel(user, web_client, "Управляет устройствами", "HTTP")
 Rel(web_client, bff, "", "HTTP")
-Rel(bff, sensors, "", "gRPC")
+Rel(bff, devices, "", "gRPC")
 Rel(bff, monitoring, "", "gRPC")
 Rel(bff, auth, "", "gRPC")
-Rel(sensors, sensors_db, "Читает и записывает")
+Rel(devices, devices_db, "Читает и записывает")
 Rel(monitoring, monitoring_db, "Читает и записывает")
 Rel(auth, auth_db, "Читает и записывает")
 Rel(monitoring, user_sensors, "Получает данные с датчиков пользователей")
-Rel(sensors, rabbitmq, "Отправляет событие о зарегистрированном/удалённом устройстве")
+Rel(devices, rabbitmq, "Отправляет событие о зарегистрированном/удалённом устройстве")
 Rel(rabbitmq, monitoring, "Получает события о зарегистрированном/удалённом устройстве")
 
 @enduml
