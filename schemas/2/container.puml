@@ -26,7 +26,7 @@ System_Boundary(warmhouse, "Тёплый дом") {
     ContainerQueue(rabbitmq, "Брокер сообщений", "RabbitMQ", "Доставляет события о регистрации/удалении устройств")
 }
 
-System_Ext("user_sensors", "датчики")
+System_Ext("user_devices", "устройства")
 
 Rel(user, web_client, "Управляет устройствами", "HTTP")
 Rel(web_client, bff, "", "HTTP")
@@ -36,7 +36,7 @@ Rel(bff, auth, "", "gRPC")
 Rel(devices, devices_db, "Читает и записывает")
 Rel(monitoring, monitoring_db, "Читает и записывает")
 Rel(auth, auth_db, "Читает и записывает")
-Rel(monitoring, user_sensors, "Получает данные с датчиков пользователей")
+Rel(monitoring, user_devices, "Получает данные с датчиков пользователей")
 Rel(devices, rabbitmq, "Отправляет событие о зарегистрированном/удалённом устройстве")
 Rel(rabbitmq, monitoring, "Получает события о зарегистрированном/удалённом устройстве")
 

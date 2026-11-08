@@ -3,4 +3,22 @@
 
 title Диаграмма компонентов — Мониторинг устройств
 
+ContainerDb(db, "База данных для микросервиса Мониторинга устройств", "PostgreSQL")
+ContainerQueue(rabbit, "Брокер сообщений", "RabbitMQ", "События устройств")
+System_Ext(user_devices, "Устройства")
+
+Container_Boundary(monitoring, "Мониторинг устройств") {
+    Component(consumer, "Консьюмер", "Go", "Получает события об устройствах")
+    
+    Component(devices_repo, "Репозиторий устройств", "Go", "Делает запись в таблицу устройств")
+    
+    Component(worker, "Фоновый воркер", "Go", "Воркер, который опрашивает устройства через HTTP-запрос")
+}
+
+Rel(consumer, rabbit, "Читает")
+Rel(consumer, devices_repo, "Записывает")
+Rel(devices_repo, db, "SQL")
+Rel(worker, user_devices, "HTTP")
+Rel(worker, devices_repo, "Обновляет данные по устройствам")
+
 @enduml
