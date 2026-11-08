@@ -21,7 +21,7 @@ Container_Boundary(telemetry, "Телеметрия") {
 
     Component(telemetry_service, "Сервисный слой телеметрии", "Go", "Предоставляет показания устройств")
     
-    Component(telemetry_repo, "Репозиторий телеметрии", "Go")
+    Component(telemetry_repo, "Репозиторий телеметрии", "Go", "Чтение и сохранение показаний устройств")
 }
 
 Rel(rabbit, consumer, "Доставляет события устройств", "AMQP")
@@ -29,11 +29,12 @@ Rel(consumer, devices_repo, "Записывает")
 Rel(consumer, events_repo, "Записывает")
 Rel(devices_repo, db, "SQL")
 Rel(events_repo, db, "SQL")
+Rel(worker, devices_repo, "Получает список устройств")
 Rel(worker, user_devices, "Опрашивает устройства и получает показания", "Протоколы устройств")
 Rel(worker, telemetry_repo, "Сохраняет показания устройств")
 Rel(telemetry_repo, db, "SQL")
 Rel(bff, telemetry_handler, "Запрашивает показания устройств", "gRPC")
 Rel(telemetry_handler, telemetry_service, "Вызывает бизнес-логику")
-Rel(telemetry_service, telemetry_repo, "Читает/записывает")
+Rel(telemetry_service, telemetry_repo, "Получает последние сохранённые показания")
 
 @enduml
