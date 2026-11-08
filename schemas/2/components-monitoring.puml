@@ -3,22 +3,37 @@
 
 title Диаграмма компонентов — Мониторинг устройств
 
+Container(bff, "BFF", "Go", "API для frontend")
 ContainerDb(db, "База данных для микросервиса Мониторинга устройств", "PostgreSQL")
 ContainerQueue(rabbit, "Брокер сообщений", "RabbitMQ", "События устройств")
 System_Ext(user_devices, "Устройства")
 
 Container_Boundary(monitoring, "Мониторинг устройств") {
-    Component(consumer, "Консьюмер", "Go", "Получает события об устройствах")
+    Component(consumer, "Консьюмер", "Go", "Получает события об устройствах и в одной транзакции делает запись в таблицу событий и в таблицу устройств")
     
     Component(devices_repo, "Репозиторий устройств", "Go", "Делает запись в таблицу устройств")
     
-    Component(worker, "Фоновый воркер", "Go", "Воркер, который опрашивает устройства через HTTP-запрос")
+    Component(events_repo, "Репозиторий событий", "Go", "Делает запись в таблицу событий для предотвращения дублей")
+    
+    Component(worker, "Фоновый воркер", "Go", "Воркер, который опрашивает устройства через определённый протоколы устройств")
+
+    Component(telemetry_handler, "API-ручки для телеметрии", "Go")
+
+    Component(telemetry_service, "Бизнес-слой для телеметрии", "Go")
+    
+    Component(telemetry_repo, "Репозиторий телеметрии", "Go")
 }
 
-Rel(consumer, rabbit, "Читает")
+Rel(rabbit, consumer, "Доставляет события устройств", "AMQP")
 Rel(consumer, devices_repo, "Записывает")
+Rel(consumer, events_repo, "Записывает")
 Rel(devices_repo, db, "SQL")
-Rel(worker, user_devices, "HTTP")
-Rel(worker, devices_repo, "Обновляет данные по устройствам")
+Rel(events_repo, db, "SQL")
+Rel(worker, user_devices, "разные протоколы")
+Rel(worker, telemetry_repo, "Обновляет данные по устройствам")
+Rel(telemetry_repo, db, "SQL")
+Rel(bff, telemetry_handler, "gRPC", "gRPC")
+Rel(telemetry_handler, telemetry_service, "Вызывает бизнес-логику")
+Rel(telemetry_service, telemetry_repo, "Читает/записывает")
 
 @enduml

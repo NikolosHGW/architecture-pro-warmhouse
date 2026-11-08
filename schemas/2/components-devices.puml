@@ -9,9 +9,9 @@ ContainerQueue(rabbit, "Брокер сообщений", "RabbitMQ", "Собы�
 
 Container_Boundary(devices, "Управление устройствами") {
 
-    Component(device_hadler, "Handler слой устройств", "gRPC", "Принимает запросы")
+    Component(device_handler, "Handler слой устройств", "gRPC", "Принимает запросы")
 
-    Component(device_service, "Сервисный слой устройств", "Go", "Бизнес-логика управления устройствами")
+    Component(device_service, "Сервисный слой устройств", "Go", "Бизнес-логика управления устройствами и координация транзакций")
 
     Component(device_repo, "Репозиторий устройств", "Go", "Работа с данными устройств")
 
@@ -20,13 +20,13 @@ Container_Boundary(devices, "Управление устройствами") {
     Component(publisher, "Воркер Outbox Publisher", "Go", "Публикация событий")
 }
 
-Rel(bff, device_hadler, "Вызывает", "gRPC")
-Rel(device_hadler, device_service, "Вызывает бизнес-логику")
+Rel(bff, device_handler, "Вызывает", "gRPC")
+Rel(device_handler, device_service, "Вызывает бизнес-логику")
 Rel(device_service, device_repo, "Читает и записывает")
 Rel(device_service, outbox_repo, "Записывает")
-Rel(device_repo, db, "SQL в одной транзакции с outbox_repo")
-Rel(outbox_repo, db, "SQL в одной транзакции с device_repo")
-Rel(publisher, db, "Читает outbox_devices", "SQL")
+Rel(device_repo, db, "запись SQL в одной транзакции с outbox_repo")
+Rel(outbox_repo, db, "Читает и записывает события Outbox", "SQL")
+Rel(publisher, outbox_repo, "Читает outbox_devices")
 Rel(publisher, rabbit, "Публикует события", "AMQP")
 
 @enduml
