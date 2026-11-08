@@ -1,25 +1,25 @@
 @startuml
 !include <C4/C4_Component>
 
-title Диаграмма компонентов — Мониторинг устройств
+title Диаграмма компонентов — Телеметрия
 
 Container(bff, "BFF", "Go", "API для frontend")
-ContainerDb(db, "База данных для микросервиса Мониторинга устройств", "PostgreSQL")
+ContainerDb(db, "База данных сервиса телеметрии", "PostgreSQL")
 ContainerQueue(rabbit, "Брокер сообщений", "RabbitMQ", "События устройств")
 System_Ext(user_devices, "Устройства")
 
-Container_Boundary(monitoring, "Мониторинг устройств") {
+Container_Boundary(telemetry, "Телеметрия") {
     Component(consumer, "Консьюмер", "Go", "Получает события об устройствах и в одной транзакции делает запись в таблицу событий и в таблицу устройств")
     
     Component(devices_repo, "Репозиторий устройств", "Go", "Делает запись в таблицу устройств")
     
     Component(events_repo, "Репозиторий событий", "Go", "Делает запись в таблицу событий для предотвращения дублей")
     
-    Component(worker, "Фоновый воркер", "Go", "Воркер, который опрашивает устройства через определённый протоколы устройств")
+    Component(worker, "Воркер сбора телеметрии", "Go", "Опрашивает устройства по поддерживаемым ими протоколам и сохраняет показания")
 
-    Component(telemetry_handler, "API-ручки для телеметрии", "Go")
+    Component(telemetry_handler, "API телеметрии", "Go", "Принимает запросы на получение показаний устройств")
 
-    Component(telemetry_service, "Бизнес-слой для телеметрии", "Go")
+    Component(telemetry_service, "Сервисный слой телеметрии", "Go", "Предоставляет показания устройств")
     
     Component(telemetry_repo, "Репозиторий телеметрии", "Go")
 }
@@ -29,10 +29,10 @@ Rel(consumer, devices_repo, "Записывает")
 Rel(consumer, events_repo, "Записывает")
 Rel(devices_repo, db, "SQL")
 Rel(events_repo, db, "SQL")
-Rel(worker, user_devices, "разные протоколы")
-Rel(worker, telemetry_repo, "Обновляет данные по устройствам")
+Rel(worker, user_devices, "Опрашивает устройства и получает показания", "Протоколы устройств")
+Rel(worker, telemetry_repo, "Сохраняет показания устройств")
 Rel(telemetry_repo, db, "SQL")
-Rel(bff, telemetry_handler, "gRPC", "gRPC")
+Rel(bff, telemetry_handler, "Запрашивает показания устройств", "gRPC")
 Rel(telemetry_handler, telemetry_service, "Вызывает бизнес-логику")
 Rel(telemetry_service, telemetry_repo, "Читает/записывает")
 

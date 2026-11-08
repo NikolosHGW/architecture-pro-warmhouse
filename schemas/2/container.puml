@@ -15,9 +15,9 @@ System_Boundary(warmhouse, "Тёплый дом") {
 
     ContainerDb(devices_db, "База данных для микросервиса Управление устройствами", "PostgreSQL", "Хранит данные")
 
-    Container(monitoring, "микросервис - Мониторинг устройств", "Go", "Получает показания")
+    Container(telemetry, "микросервис - Телеметрия", "Go", "Собирает, хранит и предоставляет показания устройств")
 
-    ContainerDb(monitoring_db, "База данных для микросервиса Мониторинг устройств", "PostgreSQL", "Хранит данные")
+    ContainerDb(telemetry_db, "База данных сервиса телеметрии", "PostgreSQL", "Хранит показания устройств, список устройств для опроса и обработанные события")
 
     Container(auth, "микросервис - Управление пользователями", "Go", "Авторизация и аутентификация пользователей")
 
@@ -31,13 +31,13 @@ System_Ext("user_devices", "устройства")
 Rel(user, web_client, "Управляет устройствами", "HTTP")
 Rel(web_client, bff, "", "HTTP")
 Rel(bff, devices, "", "gRPC")
-Rel(bff, monitoring, "", "gRPC")
+Rel(bff, telemetry, "Запрашивает показания устройств", "gRPC")
 Rel(bff, auth, "", "gRPC")
 Rel(devices, devices_db, "Читает и записывает")
-Rel(monitoring, monitoring_db, "Читает и записывает")
+Rel(telemetry, telemetry_db, "Читает и записывает")
 Rel(auth, auth_db, "Читает и записывает")
-Rel(monitoring, user_devices, "Получает данные с датчиков пользователей")
+Rel(telemetry, user_devices, "Опрашивает устройства и получает показания")
 Rel(devices, rabbitmq, "Отправляет событие о зарегистрированном/удалённом устройстве")
-Rel(rabbitmq, monitoring, "Получает события о зарегистрированном/удалённом устройстве")
+Rel(rabbitmq, telemetry, "Доставляет события о регистрации/удалении устройств", "AMQP")
 
 @enduml
