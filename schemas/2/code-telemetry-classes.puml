@@ -1,0 +1,54 @@
+@startuml
+title Телеметрия — диаграмма классов
+
+class Device {
+    +String ID
+    +String OwnerID
+    +String Endpoint
+    +String Protocol
+}
+
+class TelemetryData {
+    +String DeviceID
+    +String Metric
+    +JSON Value
+    +String Unit
+    +DateTime ReceivedAt
+}
+
+class TelemetryWorker {
+    -Duration timeout
+    +void Collect()
+    -TelemetryData poll(Device device)
+}
+
+class DeviceRepository {
+    +List<Device> FindAllForPolling()
+    +Device FindByID(String deviceID)
+}
+
+class TelemetryRepository {
+    +void Save(TelemetryData reading)
+    +TelemetryData FindLatest(String deviceID)
+}
+
+class TelemetryService {
+    +TelemetryData GetLatest(String deviceID, String userID)
+}
+
+class TelemetryHandler {
+    +TelemetryData GetLatest(String deviceID, String userID)
+}
+
+Device "1" -- "0..*" TelemetryData : имеет показания
+TelemetryWorker --> DeviceRepository : получает устройства
+TelemetryWorker --> Device : опрашивает
+TelemetryWorker ..> TelemetryData : создаёт и проверяет
+TelemetryWorker --> TelemetryRepository : сохраняет показания
+TelemetryHandler --> TelemetryService : вызывает
+TelemetryService --> DeviceRepository : проверяет владельца
+TelemetryService --> TelemetryRepository : читает показания
+TelemetryRepository ..> TelemetryData : сохраняет и возвращает
+DeviceRepository ..> Device : возвращает
+
+@enduml
