@@ -19,6 +19,8 @@ System_Boundary(warmhouse, "Тёплый дом") {
 
     ContainerDb(telemetry_db, "База данных сервиса телеметрии", "PostgreSQL", "Хранит показания устройств, список устройств для опроса и обработанные события")
 
+    Container(video, "микросервис - Видеонаблюдение", "Go", "Проверяет доступ к камере и выполняет соединение по WebRTC между браузером и камерой")
+
     Container(auth, "микросервис - Управление пользователями", "Go", "Авторизация и аутентификация пользователей")
 
     ContainerDb(auth_db, "База данных для микросервиса Управление пользователями", "PostgreSQL", "Хранит данные")
@@ -32,6 +34,10 @@ Rel(user, web_client, "Управляет устройствами", "HTTP")
 Rel(web_client, bff, "", "HTTP")
 Rel(bff, devices, "", "gRPC")
 Rel(bff, telemetry, "Запрашивает показания устройств", "gRPC")
+Rel(bff, video, "Передаёт данные по камере", "gRPC")
+Rel(video, devices, "Получает владельца камеры и урл для камеры", "gRPC")
+Rel(video, user_devices, "Передача и получение данных для WebRTC", "HTTPS")
+Rel(user_devices, web_client, "Камера передаёт видео по соединению, установленному браузером", "WebRTC")
 Rel(bff, auth, "", "gRPC")
 Rel(devices, devices_db, "Читает и записывает")
 Rel(telemetry, telemetry_db, "Читает и записывает")
