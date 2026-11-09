@@ -9,7 +9,7 @@ System_Boundary(warmhouse, "Тёплый дом") {
 
     Container(web_client, "фронтенд", "JS", "Интерфейс для пользователя")
 
-    Container(bff, "Backend for frontend", "Go", "Распределяет запросы от фронтенда к микросервисам и агрегирует данные для ответа на фронтенд")
+    Container(bff, "Backend for frontend", "Go", "Распределяет запросы от фронтенда к микросервисам и агрегирует данные для ответа на фронтенд, проверяет подпись и срок действия JWT")
 
     Container(devices, "микросервис - Управление устройствами", "Go", "Управляет устройствами (подключения, удаления и т.д.)")
 
@@ -31,14 +31,14 @@ System_Boundary(warmhouse, "Тёплый дом") {
 System_Ext("user_devices", "устройства")
 
 Rel(user, web_client, "Управляет устройствами", "HTTP")
-Rel(web_client, bff, "", "HTTP")
+Rel(web_client, bff, "Регистрация и вход; защищённые запросы с Authorization: Bearer JWT", "HTTPS")
 Rel(bff, devices, "", "gRPC")
 Rel(bff, telemetry, "Запрашивает показания устройств", "gRPC")
 Rel(bff, video, "Передаёт данные по камере", "gRPC")
 Rel(video, devices, "Получает владельца камеры и урл для камеры", "gRPC")
 Rel(video, user_devices, "Передача и получение данных для WebRTC", "HTTPS")
 Rel(user_devices, web_client, "Камера передаёт видео по соединению, установленному браузером", "WebRTC")
-Rel(bff, auth, "", "gRPC")
+Rel(bff, auth, "Передаёт запросы регистрации и входа, получает JWT", "gRPC")
 Rel(devices, devices_db, "Читает и записывает")
 Rel(telemetry, telemetry_db, "Читает и записывает")
 Rel(auth, auth_db, "Читает и записывает")
