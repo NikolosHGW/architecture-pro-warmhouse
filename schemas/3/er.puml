@@ -5,7 +5,7 @@ skinparam linetype ortho
 
 package "БД управления пользователями" {
     entity "User\nusers" as users {
-        * id : UUID <<PK>>
+        * id : BIGINT <<PK, IDENTITY>>
         --
         * login : VARCHAR <<UNIQUE>>
         * password_hash : TEXT
@@ -15,26 +15,26 @@ package "БД управления пользователями" {
 
 package "БД управления устройствами" {
     entity "Location\nlocations" as locations {
-        * id : UUID <<PK>>
+        * id : BIGINT <<PK, IDENTITY>>
         --
-        * owner_id : UUID <<REF>>
+        * owner_id : BIGINT <<REF>>
         * name : VARCHAR
         * created_at : TIMESTAMPTZ
     }
 
     entity "DeviceType\ndevice_types" as device_types {
-        * id : UUID <<PK>>
+        * id : BIGINT <<PK, IDENTITY>>
         --
         * code : VARCHAR <<UNIQUE>>
         * name : VARCHAR
     }
 
     entity "Device\ndevices" as devices {
-        * id : UUID <<PK>>
+        * id : BIGINT <<PK, IDENTITY>>
         --
-        * owner_id : UUID <<REF>>
-        * type_id : UUID <<FK>>
-        * location_id : UUID <<FK>>
+        * owner_id : BIGINT <<REF>>
+        * type_id : BIGINT <<FK>>
+        * location_id : BIGINT <<FK>>
         * name : VARCHAR
         serial_number : VARCHAR
         endpoint : TEXT
@@ -45,9 +45,9 @@ package "БД управления устройствами" {
     }
 
     entity "OutboxEvent\noutbox_devices" as outbox {
-        * id : UUID <<PK>>
+        * id : BIGINT <<PK, IDENTITY>>
         --
-        * device_id : UUID <<FK>>
+        * device_id : BIGINT <<FK>>
         * type : VARCHAR
         * payload : JSONB
         * created_at : TIMESTAMPTZ
@@ -57,9 +57,9 @@ package "БД управления устройствами" {
 
 package "БД телеметрии" {
     entity "Device\ntelemetry_devices" as telemetry_devices {
-        * device_id : UUID <<PK, REF>>
+        * device_id : BIGINT <<PK, REF>>
         --
-        * owner_id : UUID <<REF>>
+        * owner_id : BIGINT <<REF>>
         endpoint : TEXT
         * protocol : VARCHAR
         connection_config : JSONB
@@ -67,9 +67,9 @@ package "БД телеметрии" {
     }
 
     entity "TelemetryData\ntelemetry_data" as telemetry_data {
-        * id : UUID <<PK>>
+        * id : BIGINT <<PK, IDENTITY>>
         --
-        * device_id : UUID <<FK>>
+        * device_id : BIGINT <<FK>>
         * metric : VARCHAR
         * value : JSONB
         unit : VARCHAR
@@ -77,7 +77,7 @@ package "БД телеметрии" {
     }
 
     entity "ProcessedEvent\nprocessed_events" as processed_events {
-        * event_id : UUID <<PK>>
+        * event_id : BIGINT <<PK>>
         --
         * processed_at : TIMESTAMPTZ
     }

@@ -1,0 +1,386 @@
+openapi: 3.0.3
+info:
+  title: Тёплый дом
+  version: 1.0.0
+  description: |
+    Тёплый дом — устройства, камеры и телеметрия
+servers:
+  - url: /api/v1
+tags:
+  - name: Устройства
+  - name: Просмотр камер
+  - name: Внутренний API
+  - name: Телеметрия
+security:
+  - userJwt: []
+paths:
+  /devices:
+    post:
+      tags: [Устройства]
+      operationId: registerDevice
+      summary: Зарегистрировать устройство текущего пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRegistration'
+            example:
+              type_id: 3
+              name: Камера у входа
+              protocol: rtsp
+              endpoint: rtsp://camera.example.com:554/live
+              connection_config:
+                username: viewer
+                password: example-password
+      responses:
+        '201':
+          description: Устройство зарегистрировано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: |
+            Неизвестный тип, недоступная пользователю локация, неподдерживаемый
+            протокол, запрещённый endpoint или неполная конфигурация подключения.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /devices/{device_id}:
+    delete:
+      tags: [Устройства]
+      operationId: deleteDevice
+      summary: Удалить одно устройство текущего пользователя
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '204':
+          description: Устройство удалено; тело ответа отсутствует
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/DeviceNotFound'
+  /devices/{device_id}/play:
+    post:
+      tags: [Просмотр камер]
+      operationId: openCameraPlayback
+      summary: Открыть просмотр камеры
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Параметры просмотра подготовлены
+          headers:
+            Cache-Control:
+              description: Параметры доступа к видео не должны кэшироваться
+              schema:
+                type: string
+                enum: [no-store]
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Play'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/DeviceNotFound'
+        '422':
+          description: Устройство не является камерой или его конфигурация неполна
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: Не удалось подключиться к камере или подготовить поток
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Сервис видеонаблюдения или управления устройствами недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /devices/{device_id}/camera-config:
+    get:
+      tags: [Внутренний API]
+      operationId: getCameraConfig
+      summary: Получить владельца и конфигурацию камеры для сервиса видеонаблюдения
+      servers:
+        - url: /internal/v1
+          description: Приватный адрес микросервиса управления устройствами
+      security:
+        - serviceJwt: []
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Владелец и параметры подключения к действующей камере
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: [no-store]
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CameraConfig'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Вызывающий сервис не имеет права читать конфигурацию камер
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Камера не найдена, удалена или устройство имеет другой тип
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Конфигурация камеры неполна или протокол не поддерживается
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /devices/{device_id}/telemetry:
+    get:
+      tags: [Телеметрия]
+      operationId: getLatestTelemetry
+      summary: Получить последнее сохранённое показание устройства
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      responses:
+        '200':
+          description: Последнее сохранённое показание устройства
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryData'
+              example:
+                device_id: 42
+                metric: temperature
+                value: 23.5
+                unit: celsius
+                received_at: '2026-11-10T17:00:00Z'
+        '204':
+          description: Устройство доступно пользователю, но показаний ещё нет; тело отсутствует
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/DeviceNotFound'
+        '503':
+          description: Сервис телеметрии недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    userJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Пользовательский access token; sub содержит ID пользователя в виде десятичной строки
+    serviceJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Сервисный access token видеонаблюдения для управления устройствами
+  parameters:
+    DeviceId:
+      name: device_id
+      in: path
+      required: true
+      description: Числовой ID зарегистрированного устройства
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+  schemas:
+    DeviceRegistration:
+      type: object
+      additionalProperties: false
+      required: [type_id, name, protocol]
+      properties:
+        type_id:
+          type: integer
+          format: int64
+          minimum: 1
+          description: ID типа устройства из справочника device_types
+        name:
+          type: string
+          minLength: 1
+          pattern: '\S'
+          description: Название устройства
+          example: Камера у входа
+        protocol:
+          type: string
+          minLength: 1
+          description: |
+            Поддерживаемый адаптером протокол подключения к устройству
+          example: rtsp
+        location_id:
+          type: integer
+          format: int64
+          minimum: 1
+          description: |
+            Необязательный ID локации текущего пользователя.
+            Если поле отсутствует, сервер по дефолту поставит локацию "Дом" под айди 1
+        endpoint:
+          type: string
+          format: uri
+          example: rtsp://camera.example.com:554/live
+        connection_config:
+          $ref: '#/components/schemas/ConnectionConfig'
+    Device:
+      type: object
+      description: Зарегистрированное устройство
+      required: [id, owner_id, type_id, location_id, name, protocol, created_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+        type_id:
+          type: integer
+          format: int64
+          minimum: 1
+        location_id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+        protocol:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ConnectionConfig:
+      type: object
+      additionalProperties: true
+      description: |
+        Здесь зависит от адаптера
+      example:
+        username: viewer
+        password: example-password
+    CameraConfig:
+      type: object
+      required: [device_id, owner_id, endpoint, protocol]
+      properties:
+        device_id:
+          type: integer
+          format: int64
+          minimum: 1
+        owner_id:
+          type: integer
+          format: int64
+          minimum: 1
+        endpoint:
+          type: string
+          format: uri
+          example: rtsp://camera.example.com:554/live
+        protocol:
+          type: string
+          example: rtsp
+        connection_config:
+          $ref: '#/components/schemas/ConnectionConfig'
+    Play:
+      type: object
+      required: [device_id, play_url, format, expires_at]
+      properties:
+        device_id:
+          type: integer
+          format: int64
+          minimum: 1
+        play_url:
+          type: string
+          format: uri
+          description: Временная HTTPS-ссылка доступа к видеопотоку
+          example: https://video.example.com/play/example-token/index.m3u8
+        format:
+          type: string
+          enum: [hls]
+        expires_at:
+          type: string
+          format: date-time
+          description: Момент истечения доступа к потоку
+    TelemetryData:
+      type: object
+      required: [device_id, metric, value, received_at]
+      properties:
+        device_id:
+          type: integer
+          format: int64
+          minimum: 1
+        metric:
+          type: string
+          description: Название измеряемой метрики
+          example: temperature
+        value:
+          description: JSON-значение показания; формат определяется метрикой
+          example: 23.5
+        unit:
+          type: string
+          description: Единица измерения; отсутствует, если неприменима
+          example: celsius
+        received_at:
+          type: string
+          format: date-time
+          description: Момент получения показания сервисом телеметрии
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: device_not_found
+        message:
+          type: string
+          example: Устройство не найдено
+  responses:
+    InvalidRequest:
+      description: Некорректный JSON, ID или формат полей запроса
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Токен отсутствует, недействителен или просрочен
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+            example: Bearer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    DeviceNotFound:
+      description: Устройство не найдено, удалено или принадлежит другому пользователю
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
