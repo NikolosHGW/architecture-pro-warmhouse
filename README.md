@@ -62,41 +62,41 @@
 
 **Диаграмма контейнеров (Containers)**
 
-![Диаграмма контейнеров C4](schemas/2/container.svg)
+![Диаграмма контейнеров C4](schemas/2/container/container.svg)
 
-[Исходный файл диаграммы](schemas/2/container.puml)
+[Исходный файл диаграммы](schemas/2/container/container.puml)
 
 **Диаграмма компонентов (Components)**
 
-![Диаграмма компонентов — Управление устройствами](schemas/2/components-devices.svg)
+![Диаграмма компонентов — Управление устройствами](schemas/2/component/components-devices.svg)
 
-[Исходный файл диаграммы](schemas/2/components-devices.puml)
+[Исходный файл диаграммы](schemas/2/component/components-devices.puml)
 
-![Диаграмма компонентов — Телеметрия](schemas/2/components-telemetry.svg)
+![Диаграмма компонентов — Телеметрия](schemas/2/component/components-telemetry.svg)
 
-[Исходный файл диаграммы](schemas/2/components-telemetry.puml)
+[Исходный файл диаграммы](schemas/2/component/components-telemetry.puml)
 
-![Диаграмма компонентов — Управление пользователями](schemas/2/components-users.svg)
+![Диаграмма компонентов — Управление пользователями](schemas/2/component/components-users.svg)
 
-[Исходный файл диаграммы](schemas/2/components-users.puml)
+[Исходный файл диаграммы](schemas/2/component/components-users.puml)
 
-![Диаграмма компонентов — Видеонаблюдение](schemas/2/components-video.svg)
+![Диаграмма компонентов — Видеонаблюдение](schemas/2/component/components-video.svg)
 
-[Исходный файл диаграммы](schemas/2/components-video.puml)
+[Исходный файл диаграммы](schemas/2/component/components-video.puml)
 
 **Диаграмма кода (Code)**
 
-![Диаграмма классов — Телеметрия](schemas/2/code-telemetry-classes.svg)
+![Диаграмма классов — Телеметрия](schemas/2/code/code-telemetry-classes.svg)
 
-[Исходный файл диаграммы](schemas/2/code-telemetry-classes.puml)
+[Исходный файл диаграммы](schemas/2/code/code-telemetry-classes.puml)
 
-![Диаграмма классов — Transactional Outbox](schemas/2/code-devices-outbox.svg)
+![Диаграмма классов — Transactional Outbox](schemas/2/code/code-devices-outbox.svg)
 
-[Исходный файл диаграммы](schemas/2/code-devices-outbox.puml)
+[Исходный файл диаграммы](schemas/2/code/code-devices-outbox.puml)
 
-![Диаграмма классов — Идемпотентный консьюмер](schemas/2/code-telemetry-consumer.svg)
+![Диаграмма классов — Идемпотентный консьюмер](schemas/2/code/code-telemetry-consumer.svg)
 
-[Исходный файл диаграммы](schemas/2/code-telemetry-consumer.puml)
+[Исходный файл диаграммы](schemas/2/code/code-telemetry-consumer.puml)
 
 # Задание 3. Разработка ER-диаграммы
 
