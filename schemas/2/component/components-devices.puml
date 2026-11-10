@@ -9,7 +9,7 @@ ContainerQueue(rabbit, "Брокер сообщений", "RabbitMQ", "Собы�
 
 Container_Boundary(devices, "Управление устройствами") {
 
-    Component(device_handler, "Handler слой устройств", "gRPC", "Принимает запросы")
+    Component(device_handler, "Handler слой устройств", "REST API (HTTP/JSON)", "Принимает запросы")
 
     Component(device_service, "Сервисный слой устройств", "Go", "Бизнес-логика управления устройствами и координация транзакций")
 
@@ -20,7 +20,7 @@ Container_Boundary(devices, "Управление устройствами") {
     Component(publisher, "Воркер Outbox Publisher", "Go", "Публикация событий")
 }
 
-Rel(bff, device_handler, "Вызывает", "gRPC")
+Rel(bff, device_handler, "Вызывает", "REST API (HTTP/JSON)")
 Rel(device_handler, device_service, "Вызывает бизнес-логику")
 Rel(device_service, device_repo, "Читает и записывает")
 Rel(device_service, outbox_repo, "Записывает")

@@ -9,7 +9,7 @@ Container(devices, "Управление устройствами", "Go", "Хр�
 System_Ext(user_devices, "Устройства", "Партнёрские камеры")
 
 Container_Boundary(video, "Видеонаблюдение") {
-    Component(video_handler, "API видеонаблюдения", "gRPC", "Принимает запросы на просмотр камер")
+    Component(video_handler, "API видеонаблюдения", "REST API (HTTP/JSON)", "Принимает запросы на просмотр камер")
 
     Component(video_service, "Сервисный слой видеонаблюдения", "Go", "Проверяет права доступа и организует просмотр камер")
 
@@ -17,9 +17,9 @@ Container_Boundary(video, "Видеонаблюдение") {
 }
 
 Rel(web_client, bff, "Запрашивает просмотр камеры", "HTTPS")
-Rel(bff, video_handler, "Передаёт запрос и проверенный ID пользователя", "gRPC")
+Rel(bff, video_handler, "Передаёт запрос и проверенный ID пользователя", "REST API (HTTP/JSON)")
 Rel(video_handler, video_service, "Запрашивает организацию просмотра")
-Rel(video_service, devices, "Получает сведения о камере и её владельце", "gRPC")
+Rel(video_service, devices, "Получает сведения о камере и её владельце", "REST API (HTTP/JSON)")
 Rel(video_service, camera_client, "Запрашивает параметры подключения")
 Rel(camera_client, user_devices, "Взаимодействует с камерой", "Поддерживаемый протокол")
 

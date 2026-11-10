@@ -17,7 +17,7 @@ Container_Boundary(telemetry, "Телеметрия") {
     
     Component(worker, "Воркер сбора телеметрии", "Go", "Опрашивает устройства по поддерживаемым ими протоколам и сохраняет показания")
 
-    Component(telemetry_handler, "API телеметрии", "Go", "Принимает запросы на получение показаний устройств")
+    Component(telemetry_handler, "API телеметрии", "REST API (HTTP/JSON)", "Принимает запросы на получение показаний устройств")
 
     Component(telemetry_service, "Сервисный слой телеметрии", "Go", "Предоставляет показания устройств")
     
@@ -33,7 +33,7 @@ Rel(worker, devices_repo, "Получает список устройств")
 Rel(worker, user_devices, "Опрашивает устройства и получает показания", "Протоколы устройств")
 Rel(worker, telemetry_repo, "Сохраняет показания устройств")
 Rel(telemetry_repo, db, "SQL")
-Rel(bff, telemetry_handler, "Запрашивает показания устройств", "gRPC")
+Rel(bff, telemetry_handler, "Запрашивает показания устройств", "REST API (HTTP/JSON)")
 Rel(telemetry_handler, telemetry_service, "Вызывает бизнес-логику")
 Rel(telemetry_service, telemetry_repo, "Получает последние сохранённые показания")
 
