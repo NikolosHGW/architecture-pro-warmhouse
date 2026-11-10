@@ -3,25 +3,24 @@
 
 title Диаграмма компонентов — Видеонаблюдение
 
-Container(web_client, "фронтенд", "JS", "Отправляет данные для WebRTC и устанавливает WebRTC-соединение с камерой")
-Container(bff, "BFF", "Go", "Передаёт параметры WebRTC и данные аутентифицированного пользователя, возвращает ответ камеры фронтенду")
-Container(devices, "микросервис - Управление устройствами", "Go", "Хранит владельцев камер и урл для WebRTC")
-System_Ext(user_devices, "Устройства", "Камеры с WebRTC")
+Container(web_client, "Фронтенд", "JS", "Запрашивает просмотр камеры и воспроизводит видео")
+Container(bff, "BFF", "Go", "Передаёт запросы на просмотр и возвращает параметры воспроизведения")
+Container(devices, "Управление устройствами", "Go", "Хранит сведения о камерах и параметры подключения")
+System_Ext(user_devices, "Устройства", "Партнёрские камеры")
 
 Container_Boundary(video, "Видеонаблюдение") {
-    Component(video_handler, "API видеонаблюдения", "gRPC", "Принимает данные пользователя и данные WebRTC")
+    Component(video_handler, "API видеонаблюдения", "gRPC", "Принимает запросы на просмотр камер")
 
-    Component(video_service, "Сервисный слой видеонаблюдения", "Go", "Получает параметры камеры, проверяет право пользователя на просмотр")
+    Component(video_service, "Сервисный слой видеонаблюдения", "Go", "Проверяет права доступа и организует просмотр камер")
 
-    Component(camera_client, "Клиент, который стучится к камере", "HTTPS", "Передаёт и возвращает данные для WebRTC")
+    Component(camera_client, "Адаптер интеграции с камерами", "Go", "Взаимодействует с камерами через поддерживаемые интерфейсы")
 }
 
-Rel(web_client, bff, "Передаёт данные камеры и WebRTC, получает данные для WebRTC", "HTTPS")
-Rel(bff, video_handler, "Передаёт запрос и данные аутентифицированного пользователя", "gRPC")
-Rel(video_handler, video_service, "Запрашивает согласование WebRTC-подключения")
-Rel(video_service, devices, "Получает владельца камеры и урл камеры", "gRPC")
-Rel(video_service, camera_client, "После проверки доступа передаёт урл")
-Rel(camera_client, user_devices, "Передаёт данные WebRTC", "HTTPS")
-Rel(user_devices, web_client, "Камера передаёт видео по соединению, установленному браузером", "WebRTC")
+Rel(web_client, bff, "Запрашивает просмотр камеры", "HTTPS")
+Rel(bff, video_handler, "Передаёт запрос и проверенный ID пользователя", "gRPC")
+Rel(video_handler, video_service, "Запрашивает организацию просмотра")
+Rel(video_service, devices, "Получает сведения о камере и её владельце", "gRPC")
+Rel(video_service, camera_client, "Запрашивает параметры подключения")
+Rel(camera_client, user_devices, "Взаимодействует с камерой", "Поддерживаемый протокол")
 
 @enduml
