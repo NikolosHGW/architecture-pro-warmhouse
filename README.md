@@ -62,15 +62,41 @@
 
 **Диаграмма контейнеров (Containers)**
 
-Добавьте диаграмму.
+![Диаграмма контейнеров C4](schemas/2/container.svg)
+
+[Исходный файл диаграммы](schemas/2/container.puml)
 
 **Диаграмма компонентов (Components)**
 
-Добавьте диаграмму для каждого из выделенных микросервисов.
+![Диаграмма компонентов — Управление устройствами](schemas/2/components-devices.svg)
+
+[Исходный файл диаграммы](schemas/2/components-devices.puml)
+
+![Диаграмма компонентов — Телеметрия](schemas/2/components-telemetry.svg)
+
+[Исходный файл диаграммы](schemas/2/components-telemetry.puml)
+
+![Диаграмма компонентов — Управление пользователями](schemas/2/components-users.svg)
+
+[Исходный файл диаграммы](schemas/2/components-users.puml)
+
+![Диаграмма компонентов — Видеонаблюдение](schemas/2/components-video.svg)
+
+[Исходный файл диаграммы](schemas/2/components-video.puml)
 
 **Диаграмма кода (Code)**
 
-Добавьте одну диаграмму или несколько.
+![Диаграмма классов — Телеметрия](schemas/2/code-telemetry-classes.svg)
+
+[Исходный файл диаграммы](schemas/2/code-telemetry-classes.puml)
+
+![Диаграмма классов — Transactional Outbox](schemas/2/code-devices-outbox.svg)
+
+[Исходный файл диаграммы](schemas/2/code-devices-outbox.puml)
+
+![Диаграмма классов — Идемпотентный консьюмер](schemas/2/code-telemetry-consumer.svg)
+
+[Исходный файл диаграммы](schemas/2/code-telemetry-consumer.puml)
 
 # Задание 3. Разработка ER-диаграммы
 
