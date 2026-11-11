@@ -25,6 +25,86 @@ services:
     networks:
       - smarthome-network
 
+  rabbitmq:
+    image: rabbitmq:4-alpine
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: warmhouse
+      RABBITMQ_DEFAULT_PASS: warmhouse
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - smarthome-network
+
+  devices-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: devices
+      POSTGRES_USER: devices
+      POSTGRES_PASSWORD: devices
+    volumes:
+      - devices_data:/var/lib/postgresql/data
+      - ./devices/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U devices -d devices"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - smarthome-network
+
+  devices:
+    build: ./devices
+    environment:
+      DATABASE_URL: postgres://devices:devices@devices-db:5432/devices
+      RABBITMQ_URL: amqp://warmhouse:warmhouse@rabbitmq:5672/
+    depends_on:
+      devices-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - smarthome-network
+
+  telemetry-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: telemetry
+      POSTGRES_USER: telemetry
+      POSTGRES_PASSWORD: telemetry
+    volumes:
+      - telemetry_data:/var/lib/postgresql/data
+      - ./telemetry/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U telemetry -d telemetry"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - smarthome-network
+
+  telemetry:
+    build: ./telemetry
+    environment:
+      DATABASE_URL: postgres://telemetry:telemetry@telemetry-db:5432/telemetry
+      TEMPERATURE_API_URL: http://temperature-api:8081
+      DEVICES_API_URL: http://devices:8082
+      RABBITMQ_URL: amqp://warmhouse:warmhouse@rabbitmq:5672/
+    depends_on:
+      telemetry-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      temperature-api:
+        condition: service_started
+    networks:
+      - smarthome-network
+
   app:
     build:
       context: ./smart_home
@@ -35,9 +115,13 @@ services:
         condition: service_healthy
       temperature-api:
         condition: service_started
+      devices:
+        condition: service_started
+      telemetry:
+        condition: service_started
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/smarthome
-      - TEMPERATURE_API_URL=http://temperature-api:8081
+      - DEVICES_API_URL=http://devices:8082
+      - TELEMETRY_API_URL=http://telemetry:8083
     ports:
       - "8080:8080"
     restart: unless-stopped
@@ -46,6 +130,9 @@ services:
 
 volumes:
   postgres_data:
+  devices_data:
+  telemetry_data:
+  rabbitmq_data:
 
 networks:
   smarthome-network:
