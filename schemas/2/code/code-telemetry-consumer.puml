@@ -1,0 +1,42 @@
+@startuml
+title Телеметрия — идемпотентный консьюмер
+
+class DeviceEvent {
+    +String ID
+    +String DeviceID
+    +String Type
+    +String Payload
+}
+
+class ProcessedEvent {
+    +String EventID
+    +DateTime ProcessedAt
+}
+
+class DeviceEventConsumer {
+    +void Handle(DeviceEvent event)
+}
+
+class ProcessedEventRepository {
+    +Boolean TryInsert(String eventID, Transaction tx)
+}
+
+class DeviceRepository {
+    +void Apply(DeviceEvent event, Transaction tx)
+}
+
+class Transaction <<sql.Tx>> {
+    +error Commit()
+    +error Rollback()
+}
+
+DeviceEventConsumer ..> DeviceEvent : получает из RabbitMQ
+DeviceEventConsumer --> ProcessedEventRepository : регистрирует ID события
+DeviceEventConsumer --> DeviceRepository : применяет новое событие
+DeviceEventConsumer --> Transaction : управляет транзакцией
+ProcessedEventRepository ..> Transaction : использует
+ProcessedEventRepository ..> ProcessedEvent : сохраняет
+DeviceRepository ..> Transaction : использует
+DeviceRepository ..> DeviceEvent : применяет данные события
+
+@enduml

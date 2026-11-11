@@ -1,0 +1,61 @@
+@startuml
+title Управление устройствами — Transactional Outbox
+
+class Device {
+    +String ID
+    +String OwnerID
+    +String Endpoint
+    +String Protocol
+}
+
+class OutboxEvent {
+    +String ID
+    +String DeviceID
+    +String Type
+    +String Payload
+    +DateTime CreatedAt
+    +DateTime PublishedAt
+}
+
+class DeviceService {
+    +void Register(Device device)
+    +void Delete(String deviceID)
+}
+
+class DeviceRepository {
+    +void Save(Device device, Transaction tx)
+    +void Delete(String deviceID, Transaction tx)
+}
+
+class OutboxRepository {
+    +void Save(OutboxEvent event, Transaction tx)
+    +List<OutboxEvent> FindPending()
+    +void MarkPublished(String eventID)
+}
+
+class Transaction <<sql.Tx>> {
+    +error Commit()
+    +error Rollback()
+}
+
+class OutboxPublisher {
+    +void PublishPending()
+}
+
+class RabbitMQClient {
+    +void Publish(OutboxEvent event)
+}
+
+DeviceService --> DeviceRepository : изменяет устройство
+DeviceService --> OutboxRepository : сохраняет событие
+DeviceService --> Transaction : управляет транзакцией
+DeviceRepository ..> Transaction : использует
+DeviceRepository ..> Device : сохраняет и удаляет
+OutboxRepository ..> Transaction : использует при записи события
+OutboxRepository ..> OutboxEvent : сохраняет и возвращает
+Device "1" -- "0..*" OutboxEvent : события устройства
+OutboxPublisher --> OutboxRepository : читает и отмечает отправленные
+OutboxPublisher --> RabbitMQClient : публикует события
+RabbitMQClient ..> OutboxEvent : передаёт с неизменным ID
+
+@enduml

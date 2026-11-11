@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Context>
+
+title Диаграмма контекста
+
+Person(user, "Пользователь")
+System(warmhouse, "Тёплый дом")
+System_Ext(sensor, "Датчики")
+
+Rel(user, warmhouse, "Управляет датчиками")
+Rel(warmhouse, sensor, "Запрашивает температуру с датчика")
+
+@enduml

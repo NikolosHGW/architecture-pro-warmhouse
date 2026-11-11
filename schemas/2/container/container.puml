@@ -1,0 +1,48 @@
+@startuml
+!include <C4/C4_Container>
+
+title Диаграмма контейнеров
+
+Person(user, "Пользователь")
+
+System_Boundary(warmhouse, "Тёплый дом") {
+
+    Container(web_client, "фронтенд", "JS", "Интерфейс для пользователя")
+
+    Container(bff, "Backend for frontend", "Go", "Распределяет запросы от фронтенда к микросервисам и агрегирует данные для ответа на фронтенд, проверяет подпись и срок действия JWT")
+
+    Container(devices, "микросервис - Управление устройствами", "Go", "Управляет устройствами (подключения, удаления и т.д.)")
+
+    ContainerDb(devices_db, "База данных для микросервиса Управление устройствами", "PostgreSQL", "Хранит данные")
+
+    Container(telemetry, "микросервис - Телеметрия", "Go", "Собирает, хранит и предоставляет показания устройств")
+
+    ContainerDb(telemetry_db, "База данных сервиса телеметрии", "PostgreSQL", "Хранит показания устройств, список устройств для опроса и обработанные события")
+
+    Container(video, "микросервис - Видеонаблюдение", "Go", "Проверяет права доступа и организует просмотр видео с камер")
+
+    Container(auth, "микросервис - Управление пользователями", "Go", "Авторизация и аутентификация пользователей")
+
+    ContainerDb(auth_db, "База данных для микросервиса Управление пользователями", "PostgreSQL", "Хранит данные")
+
+    ContainerQueue(rabbitmq, "Брокер сообщений", "RabbitMQ", "Доставляет события о регистрации/удалении устройств")
+}
+
+System_Ext("user_devices", "устройства")
+
+Rel(user, web_client, "Управляет устройствами", "HTTP")
+Rel(web_client, bff, "Регистрация и вход; защищённые запросы с Authorization: Bearer JWT", "HTTPS")
+Rel(bff, devices, "", "REST API (HTTP/JSON)")
+Rel(bff, telemetry, "Запрашивает показания устройств", "REST API (HTTP/JSON)")
+Rel(bff, video, "Запрашивает просмотр камеры", "REST API (HTTP/JSON)")
+Rel(video, devices, "Получает конфигурацию камеры и сведения о владельце", "REST API (HTTP/JSON)")
+Rel(video, user_devices, "Взаимодействует с камерами для организации просмотра", "Протоколы устройств")
+Rel(bff, auth, "Передаёт запросы регистрации и входа, получает JWT", "REST API (HTTP/JSON)")
+Rel(devices, devices_db, "Читает и записывает")
+Rel(telemetry, telemetry_db, "Читает и записывает")
+Rel(auth, auth_db, "Читает и записывает")
+Rel(telemetry, user_devices, "Опрашивает устройства и получает показания")
+Rel(devices, rabbitmq, "Отправляет событие о зарегистрированном/удалённом устройстве")
+Rel(rabbitmq, telemetry, "Доставляет события о регистрации/удалении устройств", "AMQP")
+
+@enduml
